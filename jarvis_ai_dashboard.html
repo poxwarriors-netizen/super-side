@@ -1,0 +1,415 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000}
+.jarvis{background:#020d1a;min-height:100vh;color:#7dd3fc;font-family:var(--font-sans,'monospace');padding:16px;display:grid;grid-template-rows:auto 1fr auto;gap:12px}
+.hdr{display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid #0ea5e940;padding-bottom:12px}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.logo-ring{width:44px;height:44px;border-radius:50%;border:2px solid #38bdf8;display:flex;align-items:center;justify-content:center;position:relative}
+.logo-ring::before{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid #38bdf820}
+.logo-ring svg{width:22px;height:22px;stroke:#38bdf8;fill:none;stroke-width:1.5}
+.hdr-title{font-size:20px;font-weight:500;color:#e0f2fe;letter-spacing:2px}
+.hdr-sub{font-size:11px;color:#38bdf880;letter-spacing:3px;margin-top:2px}
+.status-row{display:flex;gap:8px;align-items:center}
+.badge{font-size:11px;padding:3px 10px;border-radius:4px;letter-spacing:1px;border:0.5px solid}
+.badge-online{background:#0f2a1a;color:#4ade80;border-color:#4ade8040}
+.badge-off{background:#1a0f0f;color:#f87171;border-color:#f8717140}
+.badge-idle{background:#1a1506;color:#fbbf24;border-color:#fbbf2440}
+.clock{font-size:13px;color:#38bdf8;font-family:monospace}
+.main-grid{display:grid;grid-template-columns:200px 1fr 200px;gap:12px}
+.panel{background:#030f1e;border:0.5px solid #0ea5e930;border-radius:8px;padding:12px}
+.panel-title{font-size:10px;letter-spacing:2px;color:#38bdf860;margin-bottom:10px;text-transform:uppercase}
+.side-left{display:flex;flex-direction:column;gap:10px}
+.sys-metric{margin-bottom:8px}
+.sys-label{font-size:11px;color:#38bdf880;margin-bottom:4px;display:flex;justify-content:space-between}
+.bar-track{background:#0a1f30;border-radius:2px;height:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;background:#38bdf8;transition:width 1s ease}
+.tool-card{border:0.5px solid #0ea5e930;border-radius:6px;padding:8px 10px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:background 0.2s}
+.tool-card:hover{background:#0a1f30}
+.tool-card.active{border-color:#38bdf860;background:#051525}
+.tool-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.tool-icon.weather{background:#0c2a3a;color:#38bdf8}
+.tool-icon.search{background:#1a1a0a;color:#fbbf24}
+.tool-icon.email{background:#0a1a0a;color:#4ade80}
+.tool-name{font-size:12px;color:#bae6fd;font-weight:500}
+.tool-status{font-size:10px;color:#38bdf860;margin-top:1px}
+.center{display:flex;flex-direction:column;gap:10px}
+.arc-container{display:flex;justify-content:center;align-items:center;padding:16px 0 8px}
+.arc-wrap{position:relative;width:160px;height:160px}
+.arc-wrap svg{width:160px;height:160px}
+.arc-center-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.arc-center-text .state{font-size:11px;letter-spacing:2px;color:#38bdf8;margin-bottom:4px}
+.arc-center-text .mode{font-size:13px;color:#e0f2fe;font-weight:500}
+.mic-btn{width:52px;height:52px;border-radius:50%;border:2px solid #38bdf8;background:#020d1a;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;margin:0 auto}
+.mic-btn:hover{background:#0a2030;border-color:#7dd3fc}
+.mic-btn.listening{border-color:#f87171;background:#1a0a0a;animation:pulse-ring 1.2s infinite}
+.mic-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.5}
+.mic-btn.listening svg{stroke:#f87171}
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 0 0 #f8717130}50%{box-shadow:0 0 0 12px #f8717110}}
+.chat-area{flex:1;overflow-y:auto;max-height:280px;display:flex;flex-direction:column;gap:8px;padding:4px 2px}
+.chat-area::-webkit-scrollbar{width:3px}
+.chat-area::-webkit-scrollbar-track{background:transparent}
+.chat-area::-webkit-scrollbar-thumb{background:#38bdf840;border-radius:2px}
+.msg{padding:8px 12px;border-radius:6px;font-size:12px;line-height:1.5;max-width:90%}
+.msg.user{background:#0a1f30;border:0.5px solid #38bdf830;color:#bae6fd;align-self:flex-end}
+.msg.jarvis{background:#030f1e;border:0.5px solid #0ea5e920;color:#7dd3fc;align-self:flex-start}
+.msg.jarvis .msg-from{font-size:10px;letter-spacing:1px;color:#38bdf860;margin-bottom:3px}
+.msg.system{background:#0a1506;border:0.5px solid #4ade8020;color:#4ade8080;font-size:11px;align-self:center;letter-spacing:1px}
+.input-row{display:flex;gap:8px;align-items:center;border-top:0.5px solid #0ea5e930;padding-top:10px;margin-top:4px}
+.chat-input{flex:1;background:#030f1e;border:0.5px solid #0ea5e940;border-radius:6px;color:#bae6fd;font-size:12px;padding:8px 12px;font-family:var(--font-sans);outline:none}
+.chat-input:focus{border-color:#38bdf8}
+.chat-input::placeholder{color:#38bdf840}
+.send-btn{width:32px;height:32px;border-radius:6px;border:0.5px solid #38bdf840;background:transparent;color:#38bdf8;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:background 0.2s}
+.send-btn:hover{background:#0a1f30}
+.side-right{display:flex;flex-direction:column;gap:10px}
+.log-item{font-size:11px;padding:5px 0;border-bottom:0.5px solid #0ea5e915;display:flex;gap:6px;align-items:flex-start}
+.log-time{color:#38bdf860;flex-shrink:0;font-family:monospace;font-size:10px;margin-top:1px}
+.log-msg{color:#7dd3fc;line-height:1.4}
+.weather-mini{background:#051525;border-radius:6px;padding:10px;text-align:center;border:0.5px solid #38bdf820}
+.weather-temp{font-size:28px;color:#e0f2fe;font-weight:500}
+.weather-city{font-size:11px;color:#38bdf860;letter-spacing:1px;margin-top:2px}
+.weather-desc{font-size:11px;color:#7dd3fc;margin-top:4px}
+.quick-btns{display:flex;flex-direction:column;gap:6px}
+.qbtn{background:#030f1e;border:0.5px solid #0ea5e930;border-radius:6px;padding:7px 10px;font-size:11px;color:#7dd3fc;cursor:pointer;text-align:left;letter-spacing:0.5px;transition:background 0.2s}
+.qbtn:hover{background:#0a1f30;border-color:#38bdf860}
+.footer{display:flex;justify-content:space-between;align-items:center;border-top:0.5px solid #0ea5e930;padding-top:10px;font-size:10px;color:#38bdf840;letter-spacing:1px}
+.dot-live{width:6px;height:6px;border-radius:50%;background:#4ade80;display:inline-block;margin-right:5px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.voice-wave{display:flex;gap:2px;align-items:center;height:20px}
+.wave-bar{width:3px;background:#38bdf8;border-radius:2px;transition:height 0.15s ease}
+.conn-indicator{display:flex;align-items:center;gap:6px;font-size:11px}
+</style>
+
+<h2 class="sr-only">JARVIS AI assistant dashboard with voice control, tool status, and chat interface</h2>
+
+<div class="jarvis">
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="logo-ring">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>
+      </div>
+      <div>
+        <div class="hdr-title">J.A.R.V.I.S</div>
+        <div class="hdr-sub">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
+      </div>
+    </div>
+    <div class="status-row">
+      <span class="badge badge-online" id="agent-badge">AGENT ONLINE</span>
+      <span class="badge badge-idle" id="session-badge">SESSION IDLE</span>
+      <div class="clock" id="clock">--:--:--</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="side-left">
+      <div class="panel">
+        <div class="panel-title">System</div>
+        <div class="sys-metric">
+          <div class="sys-label"><span>CPU</span><span id="cpu-val">--</span></div>
+          <div class="bar-track"><div class="bar-fill" id="cpu-bar" style="width:0%"></div></div>
+        </div>
+        <div class="sys-metric">
+          <div class="sys-label"><span>RAM</span><span id="ram-val">--</span></div>
+          <div class="bar-track"><div class="bar-fill" id="ram-bar" style="width:0%"></div></div>
+        </div>
+        <div class="sys-metric">
+          <div class="sys-label"><span>Session</span><span id="session-val">0s</span></div>
+          <div class="bar-track"><div class="bar-fill" id="session-bar" style="width:10%;background:#4ade80"></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Tools</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="tool-card active" id="tool-weather" onclick="triggerTool('weather')">
+            <div class="tool-icon weather"><i class="ti ti-cloud" aria-hidden="true"></i></div>
+            <div><div class="tool-name">Weather</div><div class="tool-status" id="ts-weather">Ready</div></div>
+          </div>
+          <div class="tool-card" id="tool-search" onclick="triggerTool('search')">
+            <div class="tool-icon search"><i class="ti ti-search" aria-hidden="true"></i></div>
+            <div><div class="tool-name">Web Search</div><div class="tool-status" id="ts-search">Ready</div></div>
+          </div>
+          <div class="tool-card" id="tool-email" onclick="triggerTool('email')">
+            <div class="tool-icon email"><i class="ti ti-mail" aria-hidden="true"></i></div>
+            <div><div class="tool-name">Send Email</div><div class="tool-status" id="ts-email">Ready</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Model</div>
+        <div style="font-size:11px;color:#7dd3fc;line-height:1.8">
+          <div style="color:#38bdf860;font-size:10px">Provider</div>
+          <div>Google Gemini</div>
+          <div style="color:#38bdf860;font-size:10px;margin-top:6px">Voice</div>
+          <div>Aoede</div>
+          <div style="color:#38bdf860;font-size:10px;margin-top:6px">Temp</div>
+          <div>0.9</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="center panel">
+      <div class="arc-container">
+        <div class="arc-wrap">
+          <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="80" cy="80" r="70" fill="none" stroke="#0ea5e920" stroke-width="1"/>
+            <circle cx="80" cy="80" r="58" fill="none" stroke="#38bdf815" stroke-width="0.5"/>
+            <circle cx="80" cy="80" r="46" fill="none" stroke="#0ea5e920" stroke-width="0.5"/>
+            <circle id="arc-ring" cx="80" cy="80" r="70" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"
+              stroke-dasharray="220 220" stroke-dashoffset="220" transform="rotate(-90 80 80)" style="transition:stroke-dashoffset 1s ease"/>
+            <circle cx="80" cy="80" r="32" fill="#030f1e" stroke="#38bdf830" stroke-width="0.5"/>
+          </svg>
+          <div class="arc-center-text">
+            <div class="state" id="arc-state">STANDBY</div>
+            <div class="mode" id="arc-mode">Idle</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:center;align-items:center;gap:16px;margin-bottom:8px">
+        <div class="voice-wave" id="voice-wave">
+          <div class="wave-bar" style="height:4px" id="wb1"></div>
+          <div class="wave-bar" style="height:8px" id="wb2"></div>
+          <div class="wave-bar" style="height:4px" id="wb3"></div>
+          <div class="wave-bar" style="height:12px" id="wb4"></div>
+          <div class="wave-bar" style="height:6px" id="wb5"></div>
+          <div class="wave-bar" style="height:4px" id="wb6"></div>
+          <div class="wave-bar" style="height:10px" id="wb7"></div>
+        </div>
+        <button class="mic-btn" id="mic-btn" onclick="toggleMic()" aria-label="Toggle voice input">
+          <svg viewBox="0 0 24 24" id="mic-icon"><path d="M12 1a3 3 0 0 1 3 3v8a3 3 0 0 1-6 0V4a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+        </button>
+        <div class="voice-wave" id="voice-wave2">
+          <div class="wave-bar" style="height:10px" id="wb8"></div>
+          <div class="wave-bar" style="height:4px" id="wb9"></div>
+          <div class="wave-bar" style="height:8px" id="wb10"></div>
+          <div class="wave-bar" style="height:4px" id="wb11"></div>
+          <div class="wave-bar" style="height:12px" id="wb12"></div>
+          <div class="wave-bar" style="height:6px" id="wb13"></div>
+          <div class="wave-bar" style="height:4px" id="wb14"></div>
+        </div>
+      </div>
+
+      <div class="chat-area" id="chat-area"></div>
+
+      <div class="input-row">
+        <input class="chat-input" id="chat-input" placeholder="Type a command or ask JARVIS..." onkeydown="if(event.key==='Enter')sendMsg()"/>
+        <button class="send-btn" onclick="sendMsg()" aria-label="Send"><i class="ti ti-send" style="font-size:15px" aria-hidden="true"></i></button>
+      </div>
+    </div>
+
+    <div class="side-right">
+      <div class="panel weather-mini" id="weather-panel">
+        <div style="font-size:10px;letter-spacing:2px;color:#38bdf860;margin-bottom:6px">WEATHER</div>
+        <div class="weather-temp" id="w-temp">--°</div>
+        <div class="weather-city" id="w-city">NO DATA</div>
+        <div class="weather-desc" id="w-desc">Ask JARVIS for weather</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Quick commands</div>
+        <div class="quick-btns">
+          <button class="qbtn" onclick="quickCmd('What is the weather in London?')"><i class="ti ti-cloud" style="font-size:13px;margin-right:5px" aria-hidden="true"></i>Weather London</button>
+          <button class="qbtn" onclick="quickCmd('Search the web for latest AI news')"><i class="ti ti-world" style="font-size:13px;margin-right:5px" aria-hidden="true"></i>Search AI news</button>
+          <button class="qbtn" onclick="quickCmd('Send a test email')"><i class="ti ti-mail" style="font-size:13px;margin-right:5px" aria-hidden="true"></i>Send email</button>
+          <button class="qbtn" onclick="quickCmd('What are your capabilities?')"><i class="ti ti-cpu" style="font-size:13px;margin-right:5px" aria-hidden="true"></i>Capabilities</button>
+        </div>
+      </div>
+
+      <div class="panel" style="flex:1">
+        <div class="panel-title">Activity log</div>
+        <div id="log-area" style="display:flex;flex-direction:column"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div><span class="dot-live"></span>LIVEKIT RTC · GOOGLE REALTIME</div>
+    <div class="conn-indicator">
+      <span id="conn-status">INITIALIZING</span>
+    </div>
+    <div>STARK INDUSTRIES · AI CORE v2.0</div>
+  </div>
+</div>
+
+<script>
+const msgs = [];
+let listening = false;
+let sessionSecs = 0;
+let waveInterval = null;
+let connState = 'connecting';
+
+function clockTick(){
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('en-GB',{hour12:false});
+}
+setInterval(clockTick,1000); clockTick();
+
+function sysUpdate(){
+  const cpu = Math.round(20 + Math.random()*30);
+  const ram = Math.round(28 + Math.random()*15);
+  document.getElementById('cpu-val').textContent = cpu+'%';
+  document.getElementById('ram-val').textContent = ram+'%';
+  document.getElementById('cpu-bar').style.width = cpu+'%';
+  document.getElementById('ram-bar').style.width = ram+'%';
+  const c = document.getElementById('cpu-bar');
+  c.style.background = cpu>70?'#f87171':cpu>50?'#fbbf24':'#38bdf8';
+}
+setInterval(sysUpdate,3000); sysUpdate();
+
+function sessionTimer(){
+  sessionSecs++;
+  document.getElementById('session-val').textContent = sessionSecs+'s';
+  const pct = Math.min(100, (sessionSecs/3600)*100);
+  document.getElementById('session-bar').style.width = Math.max(3,pct)+'%';
+}
+setInterval(sessionTimer,1000);
+
+function addLog(msg){
+  const la = document.getElementById('log-area');
+  const t = new Date().toLocaleTimeString('en-GB',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const d = document.createElement('div');
+  d.className='log-item';
+  d.innerHTML=`<span class="log-time">${t}</span><span class="log-msg">${msg}</span>`;
+  la.prepend(d);
+  const items = la.querySelectorAll('.log-item');
+  if(items.length>8) items[items.length-1].remove();
+}
+
+function addChat(role, text){
+  const ca = document.getElementById('chat-area');
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  if(role==='jarvis') d.innerHTML = `<div class="msg-from">JARVIS</div>${text}`;
+  else if(role==='system') d.textContent = text;
+  else d.textContent = text;
+  ca.appendChild(d);
+  ca.scrollTop = ca.scrollHeight;
+}
+
+function setArcState(label, mode, pct){
+  document.getElementById('arc-state').textContent = label;
+  document.getElementById('arc-mode').textContent = mode;
+  const circ = 2*Math.PI*70;
+  const offset = circ - (pct/100)*circ;
+  document.getElementById('arc-ring').style.strokeDasharray = circ+' '+circ;
+  document.getElementById('arc-ring').style.strokeDashoffset = offset;
+}
+
+function startWave(){
+  if(waveInterval) return;
+  const bars = ['wb1','wb2','wb3','wb4','wb5','wb6','wb7','wb8','wb9','wb10','wb11','wb12','wb13','wb14'];
+  waveInterval = setInterval(()=>{
+    bars.forEach(id=>{
+      const h = Math.round(4 + Math.random()*14);
+      document.getElementById(id).style.height = h+'px';
+    });
+  },120);
+}
+function stopWave(){
+  if(waveInterval){clearInterval(waveInterval);waveInterval=null;}
+  ['wb1','wb2','wb3','wb4','wb5','wb6','wb7','wb8','wb9','wb10','wb11','wb12','wb13','wb14']
+    .forEach((id,i)=>{document.getElementById(id).style.height=(i%3===0?8:4)+'px';});
+}
+
+function toggleMic(){
+  listening = !listening;
+  const btn = document.getElementById('mic-btn');
+  const badge = document.getElementById('session-badge');
+  if(listening){
+    btn.classList.add('listening');
+    badge.textContent='LISTENING';
+    badge.className='badge badge-online';
+    setArcState('ACTIVE','Listening',75);
+    startWave();
+    addLog('Voice input activated');
+    setTimeout(()=>{
+      if(listening) simulateJarvisResponse("I'm listening. How can I assist you?");
+    },1200);
+  } else {
+    btn.classList.remove('listening');
+    badge.textContent='SESSION IDLE';
+    badge.className='badge badge-idle';
+    setArcState('STANDBY','Idle',20);
+    stopWave();
+    addLog('Voice input deactivated');
+  }
+}
+
+function simulateJarvisResponse(text){
+  addChat('jarvis', text);
+  addLog('Response generated');
+}
+
+function triggerTool(tool){
+  const labels = {weather:'Weather lookup',search:'Web search',email:'Email send'};
+  const ts = document.getElementById('ts-'+tool);
+  ts.textContent = 'Running...';
+  ts.style.color = '#fbbf24';
+  document.getElementById('tool-'+tool).classList.add('active');
+  addLog(labels[tool]+' triggered');
+  addChat('system', '[ '+labels[tool].toUpperCase()+' TOOL ACTIVE ]');
+  setTimeout(()=>{
+    ts.textContent = 'Done';
+    ts.style.color = '#4ade80';
+    addLog(labels[tool]+' completed');
+    setTimeout(()=>{ts.textContent='Ready';ts.style.color='';},2000);
+  },2000);
+}
+
+function quickCmd(cmd){
+  addChat('user', cmd);
+  addLog('Command: '+cmd.substring(0,30)+'...');
+  setArcState('PROCESSING','Thinking',55);
+  document.getElementById('session-badge').textContent='PROCESSING';
+  document.getElementById('session-badge').className='badge badge-online';
+  const lower = cmd.toLowerCase();
+  setTimeout(()=>{
+    if(lower.includes('weather')){
+      const city = lower.match(/in (\w+)/)?.[1]||'your city';
+      triggerTool('weather');
+      setTimeout(()=>{
+        simulateJarvisResponse('Fetching weather for '+city+' now. The current conditions show partly cloudy skies.');
+        document.getElementById('w-city').textContent = city.toUpperCase();
+        document.getElementById('w-temp').textContent = Math.round(12+Math.random()*15)+'°C';
+        document.getElementById('w-desc').textContent = 'Partly cloudy';
+      },1500);
+    } else if(lower.includes('search')){
+      triggerTool('search');
+      setTimeout(()=>{
+        simulateJarvisResponse('Running DuckDuckGo search. I found several relevant results — the latest AI developments include major releases from leading research labs this week.');
+      },1500);
+    } else if(lower.includes('email')){
+      triggerTool('email');
+      setTimeout(()=>{
+        simulateJarvisResponse('Email module ready. Please provide the recipient, subject, and message body.');
+      },1500);
+    } else {
+      simulateJarvisResponse('I have three active tools: weather lookup via wttr.in, web search via DuckDuckGo, and email via Gmail SMTP. I am connected to the LiveKit RTC session and running on Google Gemini Realtime with voice Aoede.');
+    }
+    setArcState('STANDBY','Idle',20);
+    document.getElementById('session-badge').textContent='SESSION IDLE';
+    document.getElementById('session-badge').className='badge badge-idle';
+  },1800);
+}
+
+function sendMsg(){
+  const inp = document.getElementById('chat-input');
+  const val = inp.value.trim();
+  if(!val) return;
+  inp.value='';
+  quickCmd(val);
+}
+
+setTimeout(()=>{
+  connState='connected';
+  document.getElementById('conn-status').textContent='CONNECTED · RTC ACTIVE';
+  addChat('system','[ JARVIS ONLINE · ALL SYSTEMS NOMINAL ]');
+  addChat('jarvis','Good day. All systems are operational. I have weather, web search, and email tools ready. How may I assist?');
+  setArcState('STANDBY','Ready',20);
+  addLog('System initialized');
+  addLog('LiveKit session started');
+  addLog('Tools loaded: 3');
+},800);
+</script>
